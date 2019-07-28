@@ -198,68 +198,68 @@ public class LandingPage extends JPanel {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-			
+
 				try {
-					
+
 					EmployeeLogin empController= new EmployeeLogin(Integer.parseInt(txtEmployeeID.getText()), String.valueOf(txtPassword.getPassword()));
-					
+
 					RedirectEvent loginEvent= new RedirectEvent(this);
-					
+
 					if(homePageRedirect != null) {
-						
+
 						homePageRedirect.redirectActionPerformed(loginEvent);
-						
+
 					}
-					 
-					
-				} 
-				
+
+
+				}
+
 				catch (NumberFormatException e1) {
-					
+
 					MainFrame.printLog(LocalDate.now() + "---" + LocalTime.now() + "---" + "LandingPage: NumberFormatException");
-					
+
 					errorMessage= "Sorry. An unexpected error occured";
-					
+
 					showError();
-					
+
 					e1.printStackTrace();
-					
-				} 
-				
-				
-				
+
+				}
+
+
+
 				catch (SQLException e2) {
-					
+
 					MainFrame.printLog(LocalDate.now() + "---" + LocalTime.now() + "---" + "LandingPage: SQLException");
-					
+
 					errorMessage= "Could not sign you in. Please retry.";
-					
+
 					showError();
-					
-					e2.printStackTrace();				
-					
-				} 
-				
+
+					e2.printStackTrace();
+
+				}
+
 				catch (ClassNotFoundException e1) {
-					
+
 					MainFrame.printLog(LocalDate.now() + "---" + LocalTime.now() + "---" + "LandingPage: ClassNotFoundException");
-					
+
 					errorMessage= "Error! Could not access configuration file.";
-					
+
 					e1.printStackTrace();
-					
-				} 
-				
+
+				}
+
 				catch (IOException e1) {
-					
+
 					MainFrame.printLog(LocalDate.now() + "---" + LocalTime.now() + "---" + "LandingPage: IOException");
 
 					errorMessage= "Error! Could not access configuration file.";
 
 					e1.printStackTrace();
-					
+
 				}
-				
+
 				
 				
 			}
