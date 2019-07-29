@@ -82,7 +82,7 @@ public class InmateMethods {
 		
 		StringBuilder pointsZeroValues= new StringBuilder();
 		
-		for(int ctrOne= 0; ctrOne < 47; ctrOne++) {
+		for(int ctrOne= 0; ctrOne < 51; ctrOne++) {
 			
 			pointsZeroValues.append(" 0,");
 			
@@ -274,30 +274,27 @@ public class InmateMethods {
 			PreparedStatement getPoints= null;
 			
 			ResultSet points= null;
-			
-			for(String temp: POMCOLUMNS) {			
-				
-				String pointsQuery= "SELECT * FROM inmates_points WHERE inmateID= ?";
-				
-				getPoints= aConnection.prepareStatement(pointsQuery);
-				
-				getPoints.setInt(1, aInmateID);
-				
-				points= getPoints.executeQuery();
-				
-				while(points.next()) {
-				
-					life_change+= points.getInt(temp + "life_change");
-					
-					behaviour+= points.getInt(temp + "behaviour");
-					
-					conduct+= points.getInt(temp + "conduct");
-					
-					attitude+= points.getInt(temp + "attitude");
-				}
-				
-				getPoints.close();
+
+			String pointsQuery= "SELECT * FROM inmates_points WHERE inmateID= ?";
+
+			getPoints= aConnection.prepareStatement(pointsQuery);
+
+			getPoints.setInt(1, aInmateID);
+
+			points= getPoints.executeQuery();
+
+			while(points.next()) {
+
+				life_change+= points.getInt("total_life_change");
+
+				behaviour+= points.getInt("total_behaviour");
+
+				conduct+= points.getInt("total_conduct");
+
+				attitude+= points.getInt("total_attitude");
 			}
+
+			getPoints.close();
 					
 			tempInmate= new Inmate(aInmateID, aCentreID, aFirstname, aLastname, aMiddlename, localDOB, aGender, life_change, behaviour, conduct,
 												attitude);

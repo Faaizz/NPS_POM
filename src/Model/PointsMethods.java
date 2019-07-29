@@ -46,7 +46,84 @@ public class PointsMethods {
 		aPrepStat.execute();
 		
 		aPrepStat.close();
-		
+
+
+
+		/*	U	P	D	A	T	E 		T	O	T	A	L 		P	O	I	N	T 	S	*/
+
+		int total_life_change= 0;
+
+		int total_behaviour= 0;
+
+		int total_conduct= 0;
+
+		int total_attitude= 0;
+
+		String[] columns= MyMethods.getPomColumns();
+
+		String getPointsQuery= "";
+
+		PreparedStatement getPoints= null;
+
+		ResultSet points= null;
+
+		getPointsQuery= "SELECT * FROM inmates_points WHERE inmateID= ?";
+
+		getPoints= aConnection.prepareStatement(getPointsQuery);
+
+		getPoints.setInt(1, inmateID);
+
+		//System.out.printf("Checking inmateID: %s \nMonth: %s \n\n", inmates.getInt("inmateID"), column);
+
+		points= getPoints.executeQuery();
+
+		while(points.next()){
+
+			for (String aColumn: columns) {
+
+
+				total_life_change+= points.getInt(aColumn + "life_change");
+				//System.out.println(life_change);
+
+				total_behaviour+= points.getInt(aColumn + "behaviour");
+
+				total_conduct+= points.getInt(aColumn + "conduct");
+
+				total_attitude+= points.getInt(aColumn + "attitude");
+
+			}
+
+		}
+
+		points.close();
+
+		getPoints.close();
+
+		String updateTotalPoints= "UPDATE inmates_points" + " SET " + "total_life_change= ?," + "total_behaviour= ?," + "total_conduct= ?," + "total_attitude= ? WHERE inmateID= ?";
+
+		PreparedStatement aPrepStatTwo= aConnection.prepareStatement(updateTotalPoints);
+
+		//System.out.println("Allotted to: " + column);
+
+		//System.out.println(life_change + " " + behaviour + " " + conduct + " " + attitude);
+
+		aPrepStatTwo.setInt(1, total_life_change);
+
+		aPrepStatTwo.setInt(2, total_behaviour);
+
+		aPrepStatTwo.setInt(3, total_conduct);
+
+		aPrepStatTwo.setInt(4, total_attitude);
+
+		aPrepStatTwo.setInt(5, inmateID);
+
+		aPrepStatTwo.execute();
+
+		aPrepStatTwo.close();
+
+
+		//CLOSE CONNECTION
+
 		aConnection.close();
 		
 		
@@ -121,79 +198,42 @@ public class PointsMethods {
 		selectDatabase.executeQuery("USE " + MyMethods.getDatabaseName());
 		
 		selectDatabase.close();
-		
+
 		Statement getInmate= aConnection.createStatement();
 		
-		ResultSet inmates= getInmate.executeQuery("SELECT * FROM inmates");
+		ResultSet inmates= getInmate.executeQuery("SELECT DISTINCT inmates.inmateID, inmates.centreID, inmates.firstname, inmates.lastname, inmates.middlename," +
+														" inmates.dob, inmates.gender FROM inmates INNER JOIN inmates_points WHERE total_life_change >= 120 AND total_behaviour >= 120" +
+															" AND total_attitude >= 80 AND total_conduct >= 80");
 		
 		Inmate tempInmate= null;
-		
+
 		while(inmates.next()) {
-			
-			//System.out.println("Checking an Inmate...");
-			
-			int life_change= 0;
-			
-			int behaviour= 0;
-			
-			int conduct= 0;
-			
-			int attitude= 0;
-			
-			String[] columns= MyMethods.getPomColumns();
-			
-			String getPointsQuery= "";
-			
-			PreparedStatement getPoints= null;
-			
-			ResultSet points= null;
-			
-			getPointsQuery= "SELECT * FROM inmates_points WHERE inmateID= ?";
-			
-			getPoints= aConnection.prepareStatement(getPointsQuery);
-			
-			getPoints.setInt(1, inmates.getInt("inmateID"));
-			
-			//System.out.printf("Checking inmateID: %s \nMonth: %s \n\n", inmates.getInt("inmateID"), column);
-			
-			points= getPoints.executeQuery();
-			
-			while(points.next()){
-				
-				for (String column: columns) {
-					
-			
-					life_change+= points.getInt(column + "life_change");
-					//System.out.println(life_change);
-					
-					behaviour+= points.getInt(column + "behaviour");
-					
-					conduct+= points.getInt(column + "conduct");
-					
-					attitude+= points.getInt(column + "attitude");
-					
-				}
-				
+			//iterate over matched inmates
+
+			Statement getPoints= aConnection.createStatement();
+
+			ResultSet inmatePoints= getPoints.executeQuery("SELECT total_life_change, total_conduct, total_behaviour, total_attitude" +
+					" FROM inmates_points WHERE inmateID= " + inmates.getInt("inmateID") );
+
+			inmatePoints.next();	//move cursor to matched row
+
+			//check if inmate meets the total points criteria (400 points)
+
+			int total_life_change= inmatePoints.getInt("total_life_change");
+			int total_behaviour= inmatePoints.getInt("total_behaviour");
+			int total_conduct= inmatePoints.getInt("total_conduct");
+			int total_attitude= inmatePoints.getInt("total_attitude");
+
+
+			if( (total_life_change + total_behaviour +total_conduct + total_attitude) >= 400 ) {
+
+				tempInmate = new Inmate(inmates.getInt("inmateID"), inmates.getInt("centreID"), inmates.getString("firstname"), inmates.getString("lastname"),
+						inmates.getString("middlename"), inmates.getDate("dob").toLocalDate(), inmates.getString("gender"), total_life_change, total_behaviour, total_conduct, total_attitude);
+
+				theList.add(tempInmate);        //add inmate to publish list
 			}
-			
-			points.close();
-			
-			getPoints.close();
-			
-			
-			//VERIFY IF INMATE MEETS CRITERIA THEN ADD TO PUBLISH LIST
-			
-			if((life_change >= 120)	&&	(behaviour >= 80)	&&	(conduct >= 120)	&&	(attitude >= 80)) {
-				
-				tempInmate= new Inmate(inmates.getInt("inmateID"), inmates.getInt("centreID"), inmates.getString("firstname"), inmates.getString("lastname"),
-						 	inmates.getString("middlename"), inmates.getDate("dob").toLocalDate(),  inmates.getString("gender"), life_change, behaviour,
-						 	conduct, attitude);
-				
-				theList.add(tempInmate);		//add inmate to publish list
-				
-				//System.out.println("Found One");
-			}
-			
+
+			inmatePoints.close();
 		}
 		
 		//FREE UP RESOURCES
@@ -203,7 +243,6 @@ public class PointsMethods {
 		getInmate.close();
 		
 		aConnection.close();
-		
 		
 		
 		return theList;

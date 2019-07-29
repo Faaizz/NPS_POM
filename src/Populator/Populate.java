@@ -40,7 +40,7 @@ public class Populate {
 		
 		Random randomGenerator= new Random();
 		
-		for (int ctrOne= 0; ctrOne < 198; ctrOne ++ ) {
+		for (int ctrOne= 0; ctrOne < 48; ctrOne ++ ) {
 			
 			inmateName= new Name(NameMethods.getRandomMaleName());
 			
